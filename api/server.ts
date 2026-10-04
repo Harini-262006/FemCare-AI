@@ -151,6 +151,16 @@ io.on('connection', (socket) => {
   });
 });
 
+import connectDB from './db.js';
+import { ensureDefaultAdmin, ensureDefaultDoctor } from './routes/auth.js';
+
+connectDB().then((isConnected) => {
+  if (isConnected) {
+    ensureDefaultAdmin();
+    ensureDefaultDoctor();
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`Server ready on port ${PORT}`);
 });

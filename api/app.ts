@@ -42,12 +42,6 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') })
 // 2. Validate env
 validateEnvironment()
 
-// 3. Connect DB & Seed Admin/Doctor
-connectDB().then(() => {
-  ensureDefaultAdmin()
-  ensureDefaultDoctor()
-})
-
 const app: express.Application = express()
 
 const isDev = process.env.NODE_ENV !== 'production'

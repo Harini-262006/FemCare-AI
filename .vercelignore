@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+public/uploads
+uploads
+scratch
+eng.traineddata
+*.log
+node_modules
+.vscode
+.idea
+.trae
+.gemini

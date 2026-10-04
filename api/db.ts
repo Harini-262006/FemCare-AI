@@ -77,54 +77,75 @@ const seedDoctors = async () => {
   }
 };
 
-const connectDB = async (retryCount = 0): Promise<boolean> => {
+let cached = (global as any).mongoose;
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
+const connectDB = async (): Promise<boolean> => {
   if (mongoose.connection.readyState >= 1) {
     return true;
   }
-  let mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI;
-  const localFallbackURI = 'mongodb://127.0.0.1:27017/femcare';
 
-  // Check for placeholder tags in MONGO_URI
-  if (!mongoURI || mongoURI.includes('<db_password>') || mongoURI.includes('<password>') || mongoURI === 'your_mongodb_connection_string') {
-    console.warn('⚠️ [MongoDB Warning] MONGO_URI contains an unreplaced password placeholder or is invalid. Falling back to local MongoDB URI.');
-    mongoURI = localFallbackURI;
+  if (cached.conn) {
+    return true;
   }
 
-  const maskedURI = mongoURI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
-  console.log(`🔗 Connecting to MongoDB (Attempt ${retryCount + 1}):`, maskedURI);
+  if (!cached.promise) {
+    let mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const isVercel = Boolean(process.env.VERCEL);
+    const localFallbackURI = 'mongodb://127.0.0.1:27017/femcare';
+
+    // Check for placeholder tags in MONGO_URI
+    if (!mongoURI || mongoURI.includes('<db_password>') || mongoURI.includes('<password>') || mongoURI === 'your_mongodb_connection_string') {
+      if (isVercel) {
+        console.warn('⚠️ [MongoDB Warning] No valid MONGO_URI environment variable provided on Vercel.');
+        return false;
+      }
+      console.warn('⚠️ [MongoDB Warning] MONGO_URI contains an unreplaced password placeholder or is invalid. Falling back to local MongoDB URI.');
+      mongoURI = localFallbackURI;
+    }
+
+    const maskedURI = mongoURI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
+    console.log('🔗 Connecting to MongoDB:', maskedURI);
+
+    const opts = {
+      serverSelectionTimeoutMS: 5000,
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(mongoURI, opts)
+      .then(async (m) => {
+        console.log('✅ MongoDB connected successfully');
+        await seedDoctors();
+        return m;
+      })
+      .catch(async (error) => {
+        cached.promise = null;
+        console.error('❌ [MongoDB Error] Connection failed:', error?.message || error);
+
+        if (!isVercel && mongoURI !== localFallbackURI) {
+          console.log('🔄 Attempting fallback to local MongoDB database...');
+          try {
+            const localM = await mongoose.connect(localFallbackURI, { serverSelectionTimeoutMS: 3000, bufferCommands: false });
+            console.log('✅ MongoDB connected successfully (Local Fallback)');
+            await seedDoctors();
+            return localM;
+          } catch (localErr: any) {
+            console.error('❌ Local MongoDB fallback also unavailable:', localErr?.message || localErr);
+            throw error;
+          }
+        }
+        throw error;
+      });
+  }
 
   try {
-    await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    console.log('✅ MongoDB connected successfully');
-    await seedDoctors();
+    cached.conn = await cached.promise;
     return true;
-  } catch (error: any) {
-    console.error(`❌ [MongoDB Error] Connection failed (Attempt ${retryCount + 1}):`, error?.message || error);
-
-    // If initial remote URI failed, try local fallback on retry
-    if (mongoURI !== localFallbackURI) {
-      console.log('🔄 Attempting fallback to local MongoDB database...');
-      try {
-        await mongoose.connect(localFallbackURI, {
-          serverSelectionTimeoutMS: 3000,
-        });
-        console.log('✅ MongoDB connected successfully (Local Fallback)');
-        await seedDoctors();
-        return true;
-      } catch (localErr: any) {
-        console.error('❌ Local MongoDB fallback also unavailable:', localErr?.message || localErr);
-      }
-    }
-
-    if (retryCount < 1) {
-      console.log('🔄 Retrying MongoDB connection in 2 seconds...');
-      await new Promise(res => setTimeout(res, 2000));
-      return connectDB(retryCount + 1);
-    }
-
-    console.warn('⚠️ MongoDB connection could not be established. Server will remain running for health endpoints & local features.');
+  } catch (error) {
+    cached.promise = null;
+    cached.conn = null;
     return false;
   }
 };
