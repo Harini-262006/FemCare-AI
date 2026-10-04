@@ -90,7 +90,7 @@ app.use(
       if (!origin) return callback(null, true);
       const isAllowed = allowedOrigins.some((allowed) => {
         if (allowed === '*') return true;
-        return origin === allowed || origin.endsWith('.vercel.app');
+        return origin === allowed || origin.endsWith('.onrender.com') || origin.endsWith('.vercel.app');
       });
       if (isAllowed || isDev) {
         callback(null, true);

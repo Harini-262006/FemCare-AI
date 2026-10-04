@@ -161,8 +161,9 @@ connectDB().then((isConnected) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Server ready on port ${PORT}`);
+const portNumber = Number(process.env.PORT) || 5000;
+server.listen(portNumber, '0.0.0.0', () => {
+  console.log(`Server ready on port ${portNumber} (0.0.0.0)`);
 });
 
 process.on('SIGTERM', () => {
