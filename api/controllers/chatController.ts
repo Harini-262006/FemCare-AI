@@ -8,7 +8,7 @@ import Prescription from '../models/Prescription';
 import { uploadFilesToCloudinary } from '../middleware/upload';
 import { generateStreamResponse } from '../services/groqService';
 import { processUploadedFiles } from '../services/fileProcessingService';
-import { fetchUserHealthContext, buildStructuredHealthContext } from '../services/healthContextService.js';
+import { fetchUserHealthContext, buildStructuredHealthContext } from '../services/healthContextService';
 
 export function formatUserProfileContext(
   user: any,

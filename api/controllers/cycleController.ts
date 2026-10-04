@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
-import Cycle from '../models/Cycle.js';
+import { AuthRequest } from '../middleware/auth';
+import Cycle from '../models/Cycle';
 
 export const getCycleEntries = async (req: AuthRequest, res: Response) => {
   try {

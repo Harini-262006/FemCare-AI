@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
-import Mood from '../models/Mood.js';
+import { AuthRequest } from '../middleware/auth';
+import Mood from '../models/Mood';
 
 export const getMoodEntries = async (req: AuthRequest, res: Response) => {
   try {

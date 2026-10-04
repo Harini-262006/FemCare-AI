@@ -3,7 +3,7 @@
  */
 import http from 'http';
 import { Server } from 'socket.io';
-import app from './app.js';
+import app from './app';
 
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
@@ -151,8 +151,8 @@ io.on('connection', (socket) => {
   });
 });
 
-import connectDB from './db.js';
-import { ensureDefaultAdmin, ensureDefaultDoctor } from './routes/auth.js';
+import connectDB from './db';
+import { ensureDefaultAdmin, ensureDefaultDoctor } from './routes/auth';
 
 connectDB().then((isConnected) => {
   if (isConnected) {

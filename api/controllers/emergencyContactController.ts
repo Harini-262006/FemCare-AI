@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
-import EmergencyContact from '../models/EmergencyContact.js';
+import { AuthRequest } from '../middleware/auth';
+import EmergencyContact from '../models/EmergencyContact';
 
 export const getEmergencyContacts = async (req: AuthRequest, res: Response) => {
   try {

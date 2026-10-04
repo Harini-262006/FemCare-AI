@@ -10,7 +10,7 @@ import { uploadFilesToCloudinary } from '../middleware/upload';
 import MedicalReport from '../models/MedicalReport';
 import Prescription from '../models/Prescription';
 import { formatUserProfileContext } from './chatController';
-import { fetchUserHealthContext, buildStructuredHealthContext } from '../services/healthContextService.js';
+import { fetchUserHealthContext, buildStructuredHealthContext } from '../services/healthContextService';
 
 export const handleAiChat = async (req: AuthRequest, res: Response) => {
   try {
