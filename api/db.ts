@@ -78,6 +78,9 @@ const seedDoctors = async () => {
 };
 
 const connectDB = async (retryCount = 0): Promise<boolean> => {
+  if (mongoose.connection.readyState >= 1) {
+    return true;
+  }
   let mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI;
   const localFallbackURI = 'mongodb://127.0.0.1:27017/femcare';
 
