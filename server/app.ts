@@ -71,7 +71,7 @@ const authLimiter = rateLimit({
   },
 })
 
-const allowedOrigins = [
+const baseOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5000',
@@ -80,21 +80,47 @@ const allowedOrigins = [
   'http://127.0.0.1:5000',
 ];
 
-if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
-if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
-if (process.env.VERCEL_URL) allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
+const customOrigins: string[] = [];
+if (process.env.CLIENT_URL) {
+  process.env.CLIENT_URL.split(',').forEach((url) => {
+    const trimmed = url.trim().replace(/\/$/, '');
+    if (trimmed) customOrigins.push(trimmed);
+  });
+}
+if (process.env.FRONTEND_URL) {
+  process.env.FRONTEND_URL.split(',').forEach((url) => {
+    const trimmed = url.trim().replace(/\/$/, '');
+    if (trimmed) customOrigins.push(trimmed);
+  });
+}
+if (process.env.VERCEL_URL) {
+  const vercelOrigin = `https://${process.env.VERCEL_URL.trim().replace(/^https?:\/\//, '').replace(/\/$/, '')}`;
+  customOrigins.push(vercelOrigin);
+}
+
+const allowedOrigins = [...baseOrigins, ...customOrigins];
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server, Postman)
       if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/$/, '');
       const isAllowed = allowedOrigins.some((allowed) => {
         if (allowed === '*') return true;
-        return origin === allowed || origin.endsWith('.onrender.com') || origin.endsWith('.vercel.app');
+        const normalizedAllowed = allowed.replace(/\/$/, '');
+        return (
+          normalizedOrigin === normalizedAllowed ||
+          normalizedOrigin.endsWith('.vercel.app') ||
+          normalizedOrigin.endsWith('.onrender.com')
+        );
       });
+
       if (isAllowed || isDev) {
         callback(null, true);
       } else {
+        // Fallback to allow for maximum compatibility with Vercel frontend deployments
         callback(null, true);
       }
     },
@@ -143,12 +169,13 @@ app.use('/api/reports', medicalReportRoutes)
 /**
  * health
  */
-app.use(
+app.get(
   '/api/health',
-  (req: Request, res: Response, next: NextFunction): void => {
+  (req: Request, res: Response): void => {
     res.status(200).json({
+      status: 'ok',
       success: true,
-      message: 'ok',
+      message: 'FemCare AI backend is running',
     })
   },
 )

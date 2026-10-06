@@ -14,6 +14,9 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  build: {
+    chunkSizeWarningLimit: 4000,
+  },
   server: {
     proxy: {
       '/api': {

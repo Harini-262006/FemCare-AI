@@ -4,11 +4,14 @@ const getSocketServerUrl = () => {
   if (import.meta.env.VITE_SOCKET_URL) {
     return import.meta.env.VITE_SOCKET_URL;
   }
+  if (import.meta.env.VITE_API_URL) {
+    const envUrl = import.meta.env.VITE_API_URL.trim();
+    return envUrl.replace(/\/api\/?$/, '');
+  }
   if (typeof window !== 'undefined') {
     if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
       return 'http://localhost:5000';
     }
-    return window.location.origin;
   }
   return 'http://localhost:5000';
 };

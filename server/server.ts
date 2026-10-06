@@ -1,9 +1,11 @@
 /**
- * Local server entry file with Socket.IO real-time communication support.
+ * Express + Socket.IO server entry file for Render deployment & local development.
  */
 import http from 'http';
 import { Server } from 'socket.io';
 import app from './app';
+import connectDB from './db';
+import { ensureDefaultAdmin, ensureDefaultDoctor } from './routes/auth';
 
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
@@ -12,6 +14,7 @@ const io = new Server(server, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -151,9 +154,6 @@ io.on('connection', (socket) => {
   });
 });
 
-import connectDB from './db';
-import { ensureDefaultAdmin, ensureDefaultDoctor } from './routes/auth';
-
 connectDB().then((isConnected) => {
   if (isConnected) {
     ensureDefaultAdmin();
@@ -161,9 +161,8 @@ connectDB().then((isConnected) => {
   }
 });
 
-const portNumber = Number(process.env.PORT) || 5000;
-server.listen(portNumber, '0.0.0.0', () => {
-  console.log(`Server ready on port ${portNumber} (0.0.0.0)`);
+server.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Server ready on port ${PORT} (0.0.0.0)`);
 });
 
 process.on('SIGTERM', () => {

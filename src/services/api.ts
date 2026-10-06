@@ -9,6 +9,21 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+export const getFileUrl = (path: string | undefined): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    const baseUrl = envUrl.trim().replace(/\/api\/?$/, '').replace(/\/$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${baseUrl}${cleanPath}`;
+  }
+  return path;
+};
+
+
 export type DoctorAttachmentPayload = {
   name: string
   type: string
